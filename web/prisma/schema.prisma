@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth (NextAuth.js) ───────────────────────────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  username      String?   @unique
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  name          String?
+  passwordHash  String?   // Credentials 로그인용 (OAuth 유저는 null)
+  rating        Int       @default(1500)
+  styleProfile  Json?     // { "carlsen": 0.73, "tal": 0.12, ... }
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts         Account[]
+  sessions         Session[]
+  puzzleAttempts   PuzzleAttempt[]
+  puzzleFeedbacks  PuzzleFeedback[]
+  categoryVotes    PuzzleCategoryVote[]
+  categoryRatings  UserCategoryRating[]
+}
+
+// 전술 카테고리별 유저 레이팅
+model UserCategoryRating {
+  id        String        @id @default(cuid())
+  userId    String
+  category  PuzzleTheme
+  rating    Int           @default(1500)
+  rd        Float         @default(350)  // Glicko-2 Rating Deviation
+  vol       Float         @default(0.06) // Glicko-2 Volatility
+  updatedAt DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+}
+
+// ─── Game ─────────────────────────────────────────────────────────────────────
+
+model Game {
+  id          String   @id @default(cuid())
+  pgn         String
+  whitePlayer String
+  blackPlayer String
+  whiteElo    Int?
+  blackElo    Int?
+  event       String?
+  site        String?
+  date        DateTime?
+  result      String?  // "1-0" | "0-1" | "1/2-1/2"
+  source      String?  @unique // Lichess game ID
+  createdAt   DateTime @default(now())
+
+  puzzles Puzzle[]
+}
+
+// ─── Puzzle ───────────────────────────────────────────────────────────────────
+
+enum GamePhase {
+  OPENING
+  MIDDLEGAME
+  ENDGAME
+}
+
+enum PuzzleTheme {
+  FORK
+  PIN
+  SKEWER
+  DISCOVERED_ATTACK
+  DOUBLE_CHECK
+  MATE_IN_1
+  MATE_IN_2
+  MATE_IN_3
+  MATE_IN_4
+  MATE_IN_5
+  QUEEN_SACRIFICE
+  ROOK_ENDGAME
+  PAWN_PROMOTION
+  TRAP
+  BACK_RANK
+  HANGING_PIECE
+  DEFLECTION
+  DECOY
+  INTERFERENCE
+  ZUGZWANG
+}
+
+model Puzzle {
+  id            String        @id @default(cuid())
+  fen           String        // 시작 포지션 FEN
+  moves         String[]      // 정답 수순 (UCI 포맷)
+  rating        Int           @default(1500)
+  ratingDeviation Float       @default(350)
+  volatility    Float         @default(0.06)
+  solveCount    Int           @default(0)
+  failCount     Int           @default(0)
+  themes        PuzzleTheme[]
+  gamePhase     GamePhase
+  openingEco    String?       // ECO 코드 (A00~E99)
+  openingName   String?
+  likeCount     Int           @default(0)
+  dislikeCount  Int           @default(0)
+  isActive      Boolean       @default(true)
+  sourceGameId  String?
+  moveIndex     Int?          // 경기에서 몇 번째 수에서 시작하는 퍼즐인지
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  blunderMove    String?       // 상대가 둔 블런더 수 (UCI). 프론트에서 먼저 애니메이션 표시용
+  preBblunderFen String?       // 블런더 직전 포지션 FEN (인트로 애니메이션: 이 포지션에서 blunderMove를 두면 fen이 됨)
+
+  sourceGame     Game?               @relation(fields: [sourceGameId], references: [id])
+  attempts       PuzzleAttempt[]
+  feedbacks      PuzzleFeedback[]
+  categoryVotes  PuzzleCategoryVote[]
+
+  @@index([rating])
+  @@index([themes])
+  @@index([gamePhase])
+  @@index([openingEco])
+  @@index([isActive])
+}
+
+// ─── Puzzle Attempt ───────────────────────────────────────────────────────────
+
+model PuzzleAttempt {
+  id              String   @id @default(cuid())
+  userId          String
+  puzzleId        String
+  solved          Boolean
+  hintUsed        Boolean  @default(false)
+  timeSpentSeconds Int?
+  ratingBefore    Int
+  ratingAfter     Int
+  createdAt       DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  puzzle Puzzle @relation(fields: [puzzleId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([puzzleId])
+}
+
+// ─── Puzzle Feedback ──────────────────────────────────────────────────────────
+
+enum ReportType {
+  MULTIPLE_SOLUTIONS
+  WRONG_DIFFICULTY
+  NONSENSE
+  CATEGORY_WRONG
+}
+
+model PuzzleFeedback {
+  id         String      @id @default(cuid())
+  userId     String
+  puzzleId   String
+  vote       Boolean?    // true = 좋아요, false = 싫어요, null = 없음
+  reportType ReportType?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  puzzle Puzzle @relation(fields: [puzzleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, puzzleId])
+  @@index([puzzleId])
+}
+
+// ─── Category Vote ────────────────────────────────────────────────────────────
+
+model PuzzleCategoryVote {
+  id             String      @id @default(cuid())
+  userId         String
+  puzzleId       String
+  suggestedTheme PuzzleTheme
+  createdAt      DateTime    @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  puzzle Puzzle @relation(fields: [puzzleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, puzzleId])
+  @@index([puzzleId])
+}
