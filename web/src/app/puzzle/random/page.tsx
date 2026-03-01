@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { getRandomPuzzle } from "@/lib/puzzles";
 
 export const dynamic = "force-dynamic";
 
@@ -9,22 +11,24 @@ export const dynamic = "force-dynamic";
  * 비로그인 시: 1200~1600 범위
  */
 export default async function RandomPuzzlePage() {
-  const base = process.env.NEXTAUTH_URL || "http://localhost:3000";
-  const headersList = await headers();
-  const cookie = headersList.get("cookie") ?? "";
+  const session = await auth();
+  let userRating = 1400;
 
-  const res = await fetch(`${base}/api/puzzles/random`, {
-    headers: { cookie },
-    cache: "no-store",
-  });
-
-  if (!res.ok) {
-    redirect("/");
+  if (session?.user?.id) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { rating: true },
+    });
+    if (user) userRating = user.rating;
   }
 
-  const data = await res.json();
-  if (data.puzzle?.id) {
-    redirect(`/puzzle/${data.puzzle.id}`);
+  const puzzle = await getRandomPuzzle({
+    userId: session?.user?.id ?? null,
+    userRating,
+  });
+
+  if (puzzle?.id) {
+    redirect(`/puzzle/${puzzle.id}`);
   }
 
   redirect("/");
