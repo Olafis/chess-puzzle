@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PuzzleTheme } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
 const PAGE_SIZE = 50;
 
 export async function GET(req: NextRequest) {
