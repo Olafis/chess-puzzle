@@ -50,7 +50,7 @@ export default async function Home() {
               퍼즐 풀기 시작
             </Link>
           ) : (
-            <span className="bg-zinc-800 text-zinc-500 px-8 py-3 rounded-xl font-semibold text-lg cursor-not-allowed">
+            <span className="bg-zinc-800 text-zinc-400 px-8 py-3 rounded-xl font-semibold text-lg cursor-not-allowed">
               퍼즐 준비 중...
             </span>
           )}
@@ -72,7 +72,7 @@ export default async function Home() {
         ].map((s) => (
           <div key={s.label} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 text-center">
             <div className="text-2xl font-bold text-zinc-900 dark:text-white">{s.value}</div>
-            <div className="text-sm text-zinc-500 mt-1">{s.label}</div>
+            <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{s.label}</div>
           </div>
         ))}
       </div>
@@ -82,7 +82,7 @@ export default async function Home() {
         <div className="mb-16">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">상위 플레이어</h2>
-            <Link href="/leaderboard" className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
+            <Link href="/leaderboard" className="text-sm text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors">
               전체 보기 →
             </Link>
           </div>
@@ -98,7 +98,7 @@ export default async function Home() {
                 >
                   <span className="text-xl w-8 text-center">{medals[i]}</span>
                   {player.image ? (
-                    <img src={player.image} alt="" className="w-8 h-8 rounded-full" />
+                    <img src={player.image} alt={displayName} className="w-8 h-8 rounded-full" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-semibold">
                       {displayName[0]?.toUpperCase() ?? "?"}
@@ -107,7 +107,7 @@ export default async function Home() {
                   <span className="flex-1 text-sm font-medium text-zinc-900 dark:text-white">{displayName}</span>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-zinc-900 dark:text-white">{player.rating}</p>
-                    <p className="text-xs text-zinc-500">{player._count.puzzleAttempts}개 해결</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">{player._count.puzzleAttempts}개 해결</p>
                   </div>
                 </Link>
               );

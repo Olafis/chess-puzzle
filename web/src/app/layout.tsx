@@ -12,10 +12,14 @@ const geistSans = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://chess-tactic.vercel.app"),
   title: "PuzzleChess",
   description: "체스 퍼즐 플랫폼 - 실전 경기에서 추출한 전술 퍼즐",
   verification: {
     google: "hUVhLSh-HF6pdRuGzg7eH0zJ54OBS9UiCmZvTh0P4yc",
+  },
+  alternates: {
+    canonical: "/",
   },
 };
 

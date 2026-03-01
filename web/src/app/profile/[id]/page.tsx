@@ -280,7 +280,7 @@ export default function ProfilePage() {
         <div className="flex items-start gap-4">
           {/* 아바타 */}
           {user.image ? (
-            <img src={user.image} alt="" className="w-16 h-16 rounded-full flex-shrink-0" />
+            <img src={user.image} alt={displayName} className="w-16 h-16 rounded-full flex-shrink-0" />
           ) : (
             <div className="w-16 h-16 rounded-full bg-zinc-400 dark:bg-zinc-700 flex items-center justify-center text-2xl font-bold flex-shrink-0 text-zinc-900 dark:text-white">
               {displayName[0]?.toUpperCase() ?? "?"}

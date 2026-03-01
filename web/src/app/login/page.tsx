@@ -52,7 +52,7 @@ export default function LoginPage() {
             <div className="w-full border-t border-zinc-300 dark:border-zinc-700" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-zinc-100 dark:bg-zinc-950 px-2 text-zinc-500">또는</span>
+            <span className="bg-zinc-100 dark:bg-zinc-950 px-2 text-zinc-500 dark:text-zinc-400">또는</span>
           </div>
         </div>
 

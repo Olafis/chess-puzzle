@@ -55,7 +55,7 @@ export function Navbar() {
                 className="flex items-center gap-2 text-base text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
               >
                 {session.user.image ? (
-                  <img src={session.user.image} alt="" className="w-8 h-8 rounded-full" />
+                  <img src={session.user.image} alt={(session.user.name ?? session.user.email ?? "사용자") + " 프로필"} className="w-8 h-8 rounded-full" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-semibold">
                     {(session.user.name || session.user.email || "?")[0]?.toUpperCase() ?? "?"}
@@ -65,7 +65,7 @@ export function Navbar() {
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="text-base text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                className="text-base text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
               >
                 로그아웃
               </button>

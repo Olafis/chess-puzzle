@@ -43,7 +43,7 @@ function Avatar({ user, size = "sm" }: { user: RankUser; size?: "sm" | "lg" }) {
     return (
       <img
         src={user.image}
-        alt=""
+        alt={displayName}
         className={`${dim} rounded-full object-cover flex-shrink-0`}
       />
     );
